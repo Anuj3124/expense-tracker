@@ -1,5 +1,5 @@
 const express = require("express");
-const { createExpense, listExpenses, deleteExpense } = require("./expense.model");
+const { createExpense, listExpenses, deleteExpense, updateExpense } = require("./expense.model");
 const { validateCreateExpense } = require("./validation");
 
 const router = express.Router();
@@ -47,6 +47,23 @@ router.delete("/expenses/:id", async (req, res) => {
     return res.status(204).send();
   } catch (err) {
     console.error("DELETE /expenses error:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.put("/expenses/:id", validateCreateExpense, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { amount, category, description, date } = req.body;
+    const expense = await updateExpense(id, {
+      amount,
+      category: category.trim(),
+      description: description.trim(),
+      date,
+    });
+    return res.json(expense);
+  } catch (err) {
+    console.error("PUT /expenses error:", err);
     return res.status(500).json({ error: "Internal server error" });
   }
 });

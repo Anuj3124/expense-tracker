@@ -46,7 +46,15 @@ function downloadCSV(expenses) {
 
 export function ExpenseList({ expenses, loading, error, filters, onFilterChange, onDelete }) {
   const [timeFilter, setTimeFilter] = useState("current_month");
-  const MONTHLY_LIMIT = 10000;
+  const [monthlyLimit, setMonthlyLimit] = useState(() => Number(localStorage.getItem("monthly_limit")) || 10000);
+  const [isEditingBudget, setIsEditingBudget] = useState(false);
+
+  function saveBudget(e) {
+    if (e.key === 'Enter' || e.type === 'blur') {
+      setIsEditingBudget(false);
+      localStorage.setItem("monthly_limit", monthlyLimit);
+    }
+  }
 
   const now = new Date();
   const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -67,8 +75,8 @@ export function ExpenseList({ expenses, loading, error, filters, onFilterChange,
     .filter(e => e.date.startsWith(currentMonthStr))
     .reduce((sum, e) => sum + parseFloat(e.amount), 0);
 
-  const progress = Math.min((currentMonthTotal / MONTHLY_LIMIT) * 100, 100);
-  const isOverLimit = currentMonthTotal > MONTHLY_LIMIT;
+  const progress = monthlyLimit > 0 ? Math.min((currentMonthTotal / monthlyLimit) * 100, 100) : 0;
+  const isOverLimit = monthlyLimit > 0 && currentMonthTotal > monthlyLimit;
 
   return (
     <div className="expense-list-section">
@@ -85,8 +93,23 @@ export function ExpenseList({ expenses, loading, error, filters, onFilterChange,
       <div className="budget-section">
         <div className="budget-header">
           <label>Current Month Budget:</label>
-          <span className="budget-amounts">
-            {formatAmount(currentMonthTotal)} / {formatAmount(MONTHLY_LIMIT)}
+          <span className="budget-amounts" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {formatAmount(currentMonthTotal)} / 
+            {isEditingBudget ? (
+              <input 
+                 type="number" 
+                 value={monthlyLimit} 
+                 onChange={e => setMonthlyLimit(e.target.value)}
+                 onBlur={saveBudget}
+                 onKeyDown={saveBudget}
+                 autoFocus
+                 style={{ width: '80px', background: 'transparent', color: 'var(--accent)', border: '1px solid var(--border)', borderRadius: '4px', padding: '2px 4px' }}
+              />
+            ) : (
+              <span onClick={() => setIsEditingBudget(true)} style={{cursor: 'pointer', borderBottom: '1px dashed var(--accent)'}} title="Click to edit budget">
+                {formatAmount(monthlyLimit)}
+              </span>
+            )}
           </span>
         </div>
         <div className="progress-container">

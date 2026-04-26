@@ -97,4 +97,16 @@ async function deleteExpense(id) {
   return true;
 }
 
-module.exports = { createExpense, listExpenses, deleteExpense, VALID_CATEGORIES };
+async function updateExpense(id, { amount, category, description, date }) {
+  const db = await getDb();
+  const paise = toPaise(amount);
+  run(db,
+    `UPDATE expenses SET amount = ?, category = ?, description = ?, date = ? WHERE id = ?`,
+    [paise, category, description, date, id]
+  );
+  persist();
+  const expense = get(db, "SELECT * FROM expenses WHERE id = ?", [id]);
+  return rowToExpense(expense);
+}
+
+module.exports = { createExpense, listExpenses, deleteExpense, updateExpense, VALID_CATEGORIES };

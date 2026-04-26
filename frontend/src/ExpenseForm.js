@@ -1,5 +1,4 @@
-import { useRef } from "react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { generateIdempotencyKey } from "./api";
 
 // Configuration for scalable category additions. 
@@ -73,6 +72,7 @@ export function ExpenseForm({ onAdd }) {
         idempotencyKey.current
       );
       idempotencyKey.current = generateIdempotencyKey();
+
       // Reset form to empty states
       amountRef.current.value = "";
       categoryRef.current.value = "";
