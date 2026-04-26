@@ -40,7 +40,7 @@ function rowToExpense(row) {
  * @param {Object} payload - The expense details.
  * @returns {Object} The created expense and whether it was newly created.
  */
-async function createExpense({ amount, category, description, date, idempotency_key }) {
+async function createExpense({ amount, category, description, date, idempotency_key, user_id }) {
   const db = await getDb();
 
   if (idempotency_key) {
@@ -53,9 +53,9 @@ async function createExpense({ amount, category, description, date, idempotency_
   const created_at = new Date().toISOString();
 
   run(db,
-    `INSERT INTO expenses (id, amount, category, description, date, created_at, idempotency_key)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [id, paise, category, description, date, created_at, idempotency_key || null]
+    `INSERT INTO expenses (id, amount, category, description, date, created_at, idempotency_key, user_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [id, paise, category, description, date, created_at, idempotency_key || null, user_id]
   );
 
   persist();
@@ -69,10 +69,10 @@ async function createExpense({ amount, category, description, date, idempotency_
  * Doing this directly in the database query (via WHERE and ORDER BY) is critical
  * for scaling to thousands of records without memory bloat on the server.
  */
-async function listExpenses({ category, sort } = {}) {
+async function listExpenses(userId, { category, sort } = {}) {
   const db = await getDb();
-  let query = "SELECT * FROM expenses WHERE 1=1";
-  const params = [];
+  let query = "SELECT * FROM expenses WHERE user_id = ?";
+  const params = [userId];
 
   if (category) {
     query += " AND LOWER(category) = LOWER(?)";
@@ -90,9 +90,9 @@ async function listExpenses({ category, sort } = {}) {
 /**
  * Deletes an expense by its ID.
  */
-async function deleteExpense(id) {
+async function deleteExpense(id, userId) {
   const db = await getDb();
-  run(db, "DELETE FROM expenses WHERE id = ?", [id]);
+  run(db, "DELETE FROM expenses WHERE id = ? AND user_id = ?", [id, userId]);
   persist();
   return true;
 }

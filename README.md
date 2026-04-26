@@ -48,6 +48,7 @@ I wanted to provide a proper relational database structure that handles SQL quer
 3. **Backend Filtering & Sorting**: Instead of sending the entire database to the frontend and filtering it in the browser, I implemented the filtering and sorting directly via SQL queries (`WHERE` and `ORDER BY`). I designed this specifically to mimic how a real, scalable production application would handle large datasets.
 4. **Uncontrolled Form Components**: In the React frontend, I utilized `useRef` (uncontrolled components) for the forms rather than standard state binding. This is a deliberate choice for scalability—it prevents React from triggering a full re-render on every single keystroke.
 5. **Strict Date Validation**: I intentionally removed any default dates from the form. The user is forced to actively select a date, and the API has strict regex validation to ensure the date format is correct.
+6. **Device-Based Data Isolation (Unique User Experience)**: To ensure that different users have a completely isolated and unique experience without the friction of a login screen, I built a zero-friction authentication mechanism. The frontend generates a unique Device ID on the first visit, stores it in `localStorage`, and securely passes it via an `X-User-ID` HTTP header. The backend database uses this header to filter all SQL queries, ensuring every device only ever sees its own expenses.
 
 ---
 
@@ -73,7 +74,7 @@ While the assignment only specifically requested recording and reviewing expense
 
 ## Intentionally Not Done
 
-* **User Authentication/Login**: I skipped adding a login or multi-user system to keep the focus strictly on the core "record and review" user story requested in the brief.
+* **User Authentication/Login**: Since this application is meant to be a simple personal tool for individual use, I intentionally skipped implementing a heavy authentication system with secure passwords. Instead, I added a lightweight "Enter your name" persistence screen. This provides a personalized experience without the unnecessary overhead and friction of a full identity provider (like JWTs or OAuth).
 * **Pagination**: I currently return the entire filtered list at once. Since this is a small personal tool for the exercise, pagination was omitted. If the dataset grew to thousands of rows, cursor-based pagination would be added.
 * **Complex Date Filtering (Yearly/12-Month Views)**: While I included standard monthly views, I intentionally avoided adding complex 12-month calendar pickers or year-to-date categorizations. Adding too many options would clutter the interface and confuse users, which goes against the core goal of providing a fast and simple expense tracker.
 

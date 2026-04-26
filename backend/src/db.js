@@ -47,10 +47,21 @@ function initSchema(db) {
       description       TEXT NOT NULL,
       date              TEXT NOT NULL,
       created_at        TEXT NOT NULL,
-      idempotency_key   TEXT UNIQUE
+      idempotency_key   TEXT UNIQUE,
+      user_id           TEXT DEFAULT 'default_user'
     );
+  `);
+
+  try {
+    db.run(`ALTER TABLE expenses ADD COLUMN user_id TEXT DEFAULT 'default_user'`);
+  } catch (err) {
+    // Column might already exist, safe to ignore
+  }
+
+  db.run(`
     CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(date DESC);
     CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(category);
+    CREATE INDEX IF NOT EXISTS idx_expenses_user ON expenses(user_id);
   `);
 }
 

@@ -4,6 +4,8 @@ const { validateCreateExpense } = require("./validation");
 
 const router = express.Router();
 
+const getUserId = (req) => req.headers["x-user-id"] || "default_user";
+
 /**
  * POST /expenses
  * Creates a new expense. Includes validation middleware before execution.
@@ -11,6 +13,7 @@ const router = express.Router();
  */
 router.post("/expenses", validateCreateExpense, async (req, res) => {
   try {
+    const userId = getUserId(req);
     const { amount, category, description, date } = req.body;
     const idempotency_key = req.headers["idempotency-key"] || null;
 
@@ -20,6 +23,7 @@ router.post("/expenses", validateCreateExpense, async (req, res) => {
       description: description.trim(),
       date,
       idempotency_key,
+      user_id: userId,
     });
 
     return res.status(created ? 201 : 200).json(expense);
@@ -31,8 +35,9 @@ router.post("/expenses", validateCreateExpense, async (req, res) => {
 
 router.get("/expenses", async (req, res) => {
   try {
+    const userId = getUserId(req);
     const { category, sort } = req.query;
-    const expenses = await listExpenses({ category, sort });
+    const expenses = await listExpenses(userId, { category, sort });
     return res.json(expenses);
   } catch (err) {
     console.error("GET /expenses error:", err);
@@ -42,8 +47,9 @@ router.get("/expenses", async (req, res) => {
 
 router.delete("/expenses/:id", async (req, res) => {
   try {
+    const userId = getUserId(req);
     const { id } = req.params;
-    await deleteExpense(id);
+    await deleteExpense(id, userId);
     return res.status(204).send();
   } catch (err) {
     console.error("DELETE /expenses error:", err);

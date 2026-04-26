@@ -4,11 +4,24 @@ function generateIdempotencyKey() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
+export function getDeviceId() {
+  let id = localStorage.getItem("flux_device_id");
+  if (!id) {
+    id = Math.random().toString(36).substring(2) + Date.now().toString(36);
+    localStorage.setItem("flux_device_id", id);
+  }
+  return id;
+}
+
 async function apiFetch(path, options = {}) {
   const { headers, ...restOptions } = options;
   const res = await fetch(`${BASE_URL}${path}`, {
     ...restOptions,
-    headers: { "Content-Type": "application/json", ...headers },
+    headers: { 
+      "Content-Type": "application/json", 
+      "X-User-ID": getDeviceId(),
+      ...headers 
+    },
   });
 
   if (!res.ok) {
